@@ -14,7 +14,7 @@ import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.http.MediaType;
+
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -43,6 +43,7 @@ class GithubClientServiceTest {
         //given
         wireMockServer.stubFor(
                 get(urlPathEqualTo("/repos/octocat/Hello-World/issues"))
+                        .withHeader("Authorization",equalTo("Token murat"))
                         .willReturn(aResponse()
                                 .withHeader("Content-Type", "application/json")
                                 .withBodyFile("issues.json")
@@ -83,7 +84,8 @@ class GithubClientServiceTest {
                 }
             });
 
-            TestPropertyValues.of("github.api-url="+wireMockServer.baseUrl())
+            TestPropertyValues.of("github.api-url="+wireMockServer.baseUrl(),
+                    "github.token=murat")
                     .applyTo(applicationContext.getEnvironment());
 
         }

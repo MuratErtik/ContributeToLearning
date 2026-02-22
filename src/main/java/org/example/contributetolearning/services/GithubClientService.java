@@ -3,6 +3,8 @@ package org.example.contributetolearning.services;
 import lombok.RequiredArgsConstructor;
 import org.example.contributetolearning.configs.GithubApplicationProperties;
 import org.example.contributetolearning.dtos.response.GithubIssueResponse;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,12 @@ public class GithubClientService {
 
         String issuesUrl = String.format("%s/repos/%s/%s/issues",properties.getApiUrl(), owner, repository);
 
-        ResponseEntity<GithubIssueResponse[]> response = restTemplate.exchange(issuesUrl,HttpMethod.GET,null, GithubIssueResponse[].class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Token " + properties.getToken());
+
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<GithubIssueResponse[]> response = restTemplate.exchange(issuesUrl,HttpMethod.GET,entity, GithubIssueResponse[].class);
 
         return response.getBody();
 

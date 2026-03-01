@@ -1,6 +1,7 @@
 package org.example.contributetolearning.managers;
 
 import lombok.RequiredArgsConstructor;
+import org.example.contributetolearning.configs.ApplicationProperties;
 import org.example.contributetolearning.dtos.requests.CreateRepositoryRequest;
 import org.example.contributetolearning.dtos.response.GithubIssueResponse;
 import org.example.contributetolearning.models.Issue;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,6 +32,8 @@ public class RepositoryManager {
 
     private final IssueService issueService;
 
+    private final ApplicationProperties applicationProperties;
+
     public void importRepository(CreateRepositoryRequest request) {
 
         repositoryService.createRepository(request);
@@ -41,12 +45,14 @@ public class RepositoryManager {
     @Async
     public void importIssue(Repository repository) {
 
+        int schedulerFrequencyMinutes = applicationProperties.getImportFrequency()/6000;
+
         // it went to one day ago
-        LocalDate sinceYesterday = LocalDate.ofInstant(Instant.now().minus(1,ChronoUnit.DAYS), ZoneId.systemDefault());
+        LocalDate since = LocalDate.ofInstant(Instant.now().minus(schedulerFrequencyMinutes,ChronoUnit.MINUTES), ZoneOffset.UTC);
 
 
         GithubIssueResponse[] githubIssueResponses = githubClientService
-                .listIssues(repository.getOrganization(),repository.getRepository(),sinceYesterday);
+                .listIssues(repository.getOrganization(),repository.getRepository(),since);
 
         List<Issue> issues = Arrays.stream(githubIssueResponses).map(githubIssue -> new Issue()).toList();
 
